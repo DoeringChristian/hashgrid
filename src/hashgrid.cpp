@@ -18,28 +18,24 @@ std::pair<Vec3i, Vec3i> get_launch_parameters(int n_threads) {
 }
 
 template <typename UInt32>
-UInt32 scatter_atomic_add_uint(UInt32 &target, const UInt32 &value,
-                               const UInt32 &idx) {
+UInt32 scatter_atomic_inc_uint(UInt32 &target, const UInt32 &idx) {
 
   int n_values = idx.size();
   int n_target = target.size();
   UInt32 dst = dr::zeros<UInt32>(n_values);
 
-  dr::resize(value, n_values);
-
-  dr::eval(target, value, idx, dst);
+  dr::eval(target, idx, dst);
 
   assert(dr::is_cuda_v<Float>());
   cuda_load_kernels();
 
   auto [grid_size, block_size] = get_launch_parameters(n_values);
 
-  const uint32_t *value_ptr = value.data();
   const uint32_t *idx_ptr = idx.data();
   uint32_t *target_ptr = target.data();
   uint32_t *dst_ptr = dst.data();
 
-  void *args[] = {&target_ptr, &value_ptr, &idx_ptr, &dst_ptr, &n_values};
+  void *args[] = {&target_ptr, &idx_ptr, &dst_ptr, &n_values};
 
   CUcontext ctx = CUcontext(jit_cuda_context());
   scoped_set_context guard(ctx);
@@ -52,6 +48,5 @@ UInt32 scatter_atomic_add_uint(UInt32 &target, const UInt32 &value,
 }
 
 template dr::CUDAArray<uint32_t>
-scatter_atomic_add_uint(dr::CUDAArray<uint32_t> &,
-                        const dr::CUDAArray<uint32_t> &,
+scatter_atomic_inc_uint(dr::CUDAArray<uint32_t> &,
                         const dr::CUDAArray<uint32_t> &);

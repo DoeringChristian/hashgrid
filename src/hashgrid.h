@@ -14,8 +14,7 @@ namespace dr = drjit;
  * @return A tuple of the cell_size and index_in_cell
  */
 template <typename UInt32>
-UInt32 scatter_atomic_add_uint(UInt32 &target, const UInt32 &value,
-                               const UInt32 &idx);
+UInt32 scatter_atomic_inc_uint(UInt32 &target, const UInt32 &idx);
 
 // template <typename Float> struct HashGrid {
 //   using UInt32 = dr::uint32_array_t<Float>;

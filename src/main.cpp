@@ -20,5 +20,5 @@ PYBIND11_MODULE(_hashgrid_core, m) {
   m.def("test", [](dr::CUDAArray<float> &test) { return std::string("test"); });
   m.def("float", []() { return dr::CUDAArray<float>(0.); });
   m.def("scatter_atomic",
-        &scatter_atomic_add_uint<dr::CUDAArray<unsigned int>>);
+        &scatter_atomic_inc_uint<dr::CUDAArray<unsigned int>>);
 }
