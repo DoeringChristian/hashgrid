@@ -2,6 +2,7 @@ import drjit as dr
 import mitsuba as mi
 
 from hashgrid import HashGrid
+import hashgrid
 
 # UInt = dr.cuda.UInt
 #
@@ -14,17 +15,30 @@ from hashgrid import HashGrid
 
 if __name__ == "__main__":
     mi.set_variant("cuda_ad_rgb")
-    n = 20
-    sampler = mi.load_dict({"type": "independent"})  # type: mi.Sampler
-    sampler.seed(0, n)
-    sample = mi.Point3f(sampler.next_1d(), sampler.next_1d(), sampler.next_1d())
+    n = 1_000_000
 
-    grid = HashGrid(sample, 3, 10)
+    target = dr.zeros(mi.UInt, n)
+    idx = dr.zeros(mi.UInt, n)
 
-    p = mi.Point3f(0.5, 0.5, 0.1)
-    cell = grid.cell_idx(p)
-    cell_size = dr.gather(mi.UInt, grid.cell_size, cell)
-    offset = dr.gather(mi.UInt, grid.cell_offset, cell)
-    idx = dr.gather(mi.UInt, grid.sample_idx, offset)
-    x0 = dr.gather(mi.Point3f, sample, idx)
-    print(f"{x0=}")
+    dst = hashgrid.scatter_atomic_inc(target, idx)
+    print(f"{target=}")
+    print(f"{dst=}")
+    print(f"{dr.sum(target)=}")
+
+    # n = 1_000_000
+    # sampler = mi.load_dict({"type": "independent"})  # type: mi.Sampler
+    # sampler.seed(0, n)
+    # sample = mi.Point3f(sampler.next_1d(), sampler.next_1d(), sampler.next_1d())
+    #
+    # grid = HashGrid(sample, 3, 1_000_000)
+    # print(f"{grid.cell_size=}")
+    # print(f"{dr.sum(grid.cell_size)=}")
+    # print(f"{grid.cell_offset=}")
+    #
+    # p = mi.Point3f(0.5, 0.5, 0.1)
+    # cell = grid.cell_idx(p)
+    # cell_size = dr.gather(mi.UInt, grid.cell_size, cell)
+    # offset = dr.gather(mi.UInt, grid.cell_offset, cell)
+    # idx = dr.gather(mi.UInt, grid.sample_idx, offset)
+    # x0 = dr.gather(mi.Point3f, sample, idx)
+    # print(f"{x0=}")

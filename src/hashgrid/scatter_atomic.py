@@ -13,7 +13,7 @@ def scatter_atomic_inc(target: dr.cuda.UInt, idx: dr.cuda.UInt):
     assert dr.is_integral_v(target) and dr.is_integral_v(idx)
 
     n_values = dr.shape(idx)[-1]
-    dst = dr.zeros(dr.cuda.UInt, n_values)  # type: dr.cuda.UInt
+    dst = dr.opaque(dr.cuda.UInt, 0, n_values)  # type: dr.cuda.UInt
 
     dr.eval(target, idx, dst)
 

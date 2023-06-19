@@ -10,3 +10,5 @@ extern "C" __global__ void scatter_atomic_add_uint(uint32_t *target,
     dst[N] = atomicAdd(&target[idx[N]], 1);
   }
 }
+
+extern "C" __global__ void uint_prefix_sum(uint32_t *input, uint32_t *output) {}
