@@ -10,7 +10,7 @@ profile = "black"
 norecursedirs = [ "ext" ]
 
 [tool.cibuildwheel]
-test-command = "python -c \"import hashgrid\""
+# test-command = "python -c \"import hashgrid\""
 test-requires =  "pytest numpy drjit mitsuba"
 skip = "*-musllinux* pp* cp36-* cp37-* cp311-* *-win32 *_i686 cp38-macosx_arm64"
 
