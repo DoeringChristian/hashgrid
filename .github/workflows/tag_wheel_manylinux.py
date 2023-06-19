@@ -45,8 +45,10 @@ def process_wheel_info_file(file):
 
 if __name__ == "__main__":
     if len(sys.argv) != 3:
-        raise RuntimeError("Exactly two arugments are expected: the wheel "
-                           "archive file and the output directory!")
+        raise RuntimeError(
+            "Exactly two arugments are expected: the wheel "
+            "archive file and the output directory!"
+        )
 
     wheel_loc = sys.argv[1]
     output_dir = sys.argv[2]
@@ -55,7 +57,9 @@ if __name__ == "__main__":
     version_begin = wheel_filename.find("-")
     wheel_package_prefix = wheel_filename[: wheel_filename.find("-", version_begin + 1)]
 
-    unpack_dir = f"/tmp/{os.path.splitext(os.path.basename(__file__))[0]}/{wheel_package_prefix}"
+    unpack_dir = (
+        f"/tmp/{os.path.splitext(os.path.basename(__file__))[0]}/{wheel_package_prefix}"
+    )
     shutil.rmtree(unpack_dir, ignore_errors=True)
     os.makedirs(unpack_dir, exist_ok=False)
     os.makedirs(output_dir, exist_ok=True)
@@ -71,7 +75,14 @@ if __name__ == "__main__":
 
     # The `wheel` package will recompute the hash of every file and modify the RECORD file
     # It also renames the packed wheel to reflect the new platform tags
-    subprocess.check_call([
-        sys.executable, "-m",
-        "wheel", "pack", f"{unpack_dir}", "-d", output_dir,
-    ])
+    subprocess.check_call(
+        [
+            sys.executable,
+            "-m",
+            "wheel",
+            "pack",
+            f"{unpack_dir}",
+            "-d",
+            output_dir,
+        ]
+    )
