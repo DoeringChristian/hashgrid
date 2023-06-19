@@ -25,6 +25,8 @@ UInt32 scatter_atomic_add_uint(UInt32 &target, const UInt32 &value,
   int n_target = target.size();
   UInt32 dst = dr::zeros<UInt32>(n_values);
 
+  dr::resize(value, n_values);
+
   dr::eval(target, value, idx, dst);
 
   assert(dr::is_cuda_v<Float>());
@@ -42,10 +44,11 @@ UInt32 scatter_atomic_add_uint(UInt32 &target, const UInt32 &value,
   CUcontext ctx = CUcontext(jit_cuda_context());
   scoped_set_context guard(ctx);
 
-  cuda_check(cuLaunchKernel(compute_index_in_cell, grid_size.x, grid_size.y,
-                            grid_size.z, block_size.x, block_size.y,
-                            block_size.z, 0, 0, args, 0));
+  cuda_check(cuLaunchKernel(cuda_scatter_atomic_add_uint, grid_size.x,
+                            grid_size.y, grid_size.z, block_size.x,
+                            block_size.y, block_size.z, 0, 0, args, 0));
   cuda_check(cuCtxSynchronize());
+  return dst;
 }
 
 template dr::CUDAArray<uint32_t>

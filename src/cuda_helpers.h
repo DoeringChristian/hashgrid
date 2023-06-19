@@ -45,7 +45,7 @@ struct scoped_set_context {
 };
 
 CUmodule cu_module;
-CUfunction compute_index_in_cell;
+CUfunction cuda_scatter_atomic_add_uint;
 bool init = false;
 
 void cuda_load_kernels() {
@@ -69,7 +69,7 @@ void cuda_load_kernels() {
   CUcontext ctx = CUcontext(jit_cuda_context());
   scoped_set_context guard(ctx);
   cuda_check(cuModuleLoadData(&cu_module, (void *)imageBytes));
-  cuda_check(cuModuleGetFunction(&compute_index_in_cell, cu_module,
-                                 (char *)"compute_index_in_cell"));
+  cuda_check(cuModuleGetFunction(&cuda_scatter_atomic_add_uint, cu_module,
+                                 (char *)"scatter_atomic_add_uint"));
   init = true;
 }
