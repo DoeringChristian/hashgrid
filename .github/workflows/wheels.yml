@@ -48,6 +48,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
+        python: [cp38, cp39, cp310, cp311]
         os: [ubuntu-20.04]
         # os: [ubuntu-20.04, windows-latest]
         # include:
@@ -91,6 +92,8 @@ jobs:
         echo "CIBW_ARCHS_MACOS=${{ matrix.cibw-arch }}" >> $GITHUB_ENV
 
     - name: Build wheels
+      env:
+        CIBW_BUILD: ${{ matrix.python }}-*
       run: |
         python -m cibuildwheel --output-dir wheelhouse
 
