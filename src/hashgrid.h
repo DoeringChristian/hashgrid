@@ -1,5 +1,6 @@
 #pragma once
 
+#include <cstdint>
 #include <drjit/array.h>
 #include <drjit/jit.h>
 #include <drjit/tensor.h>
@@ -13,8 +14,11 @@ namespace dr = drjit;
  * @param cell cell indices to scatter
  * @return A tuple of the cell_size and index_in_cell
  */
-template <typename UInt32>
-UInt32 scatter_atomic_inc_uint(UInt32 &target, const UInt32 &idx);
+// template <typename UInt32>
+// UInt32 scatter_atomic_inc_uint(UInt32 &target, const UInt32 &idx);
+
+void scatter_atomic_inc_uint_cuda(uint64_t target, uint64_t idx, uint64_t dst,
+                                  int n_values);
 
 // template <typename Float> struct HashGrid {
 //   using UInt32 = dr::uint32_array_t<Float>;

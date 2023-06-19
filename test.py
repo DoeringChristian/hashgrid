@@ -4,10 +4,9 @@ import hashgrid
 
 UInt = dr.cuda.UInt
 
-target = dr.detach(UInt(0, 0, 0))
-value = dr.detach(UInt(1, 1, 1))
-idx = dr.detach(UInt(0, 0, 1))
+target = UInt(0, 0, 0, 0)
+idx = UInt(0, 0, 0, 0, 0, 0, 0)
 
-dr.eval(target, value, idx)
-
-dst = hashgrid.scatter_atomic(target, value, idx)
+dst = hashgrid.scatter_atomic_inc(target, idx)
+print(f"{dst=}")
+print(f"{target=}")

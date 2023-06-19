@@ -5,6 +5,7 @@
 #include <drjit-core/containers.h>
 #include <drjit/array.h>
 #include <drjit/util.h>
+#include <iostream>
 
 namespace dr = drjit;
 
@@ -17,12 +18,8 @@ std::pair<Vec3i, Vec3i> get_launch_parameters(int n_threads) {
   return {grid_size, block_size};
 }
 
-template <typename UInt32>
-UInt32 scatter_atomic_inc_uint(UInt32 &target, const UInt32 &idx) {
-
-  int n_values = idx.size();
-  int n_target = target.size();
-  UInt32 dst = dr::zeros<UInt32>(n_values);
+void scatter_atomic_inc_uint_cuda(uint64_t target, uint64_t idx, uint64_t dst,
+                                  int n_values) {
 
   dr::eval(target, idx, dst);
 
@@ -31,11 +28,7 @@ UInt32 scatter_atomic_inc_uint(UInt32 &target, const UInt32 &idx) {
 
   auto [grid_size, block_size] = get_launch_parameters(n_values);
 
-  const uint32_t *idx_ptr = idx.data();
-  uint32_t *target_ptr = target.data();
-  uint32_t *dst_ptr = dst.data();
-
-  void *args[] = {&target_ptr, &idx_ptr, &dst_ptr, &n_values};
+  void *args[] = {&target, &idx, &dst, &n_values};
 
   CUcontext ctx = CUcontext(jit_cuda_context());
   scoped_set_context guard(ctx);
@@ -44,9 +37,4 @@ UInt32 scatter_atomic_inc_uint(UInt32 &target, const UInt32 &idx) {
                             grid_size.y, grid_size.z, block_size.x,
                             block_size.y, block_size.z, 0, 0, args, 0));
   cuda_check(cuCtxSynchronize());
-  return dst;
 }
-
-template dr::CUDAArray<uint32_t>
-scatter_atomic_inc_uint(dr::CUDAArray<uint32_t> &,
-                        const dr::CUDAArray<uint32_t> &);
