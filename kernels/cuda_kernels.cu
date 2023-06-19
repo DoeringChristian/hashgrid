@@ -2,12 +2,12 @@
 #include "vec.h"
 #include <cstdint>
 
-extern "C" __global__ void compute_index_in_cell(uint32_t *cell,
-                                                 uint32_t *cell_size,
-                                                 uint32_t *index_in_cell,
-                                                 uint32_t n_samples) {
-  int idx = blockIdx.x * blockDim.x + threadIdx.x;
-  if ((uint32_t)idx < n_samples) {
-    index_in_cell[idx] = atomicInc(&cell_size[cell[idx]], 1);
+extern "C" __global__ void scatter_atomic_add_uint(uint32_t *target,
+                                                   uint32_t *value,
+                                                   uint32_t *idx, uint32_t *dst,
+                                                   uint32_t n_values) {
+  int N = blockIdx.x * blockDim.x + threadIdx.x;
+  if ((uint32_t)N < n_values) {
+    dst[N] = atomicAdd(&target[idx[N]], value[N]);
   }
 }

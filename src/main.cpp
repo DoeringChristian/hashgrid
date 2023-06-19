@@ -1,7 +1,8 @@
-#include "hashgrid.h"
 #include <cstdint>
 
 #include <pybind11/pybind11.h>
+
+#include "hashgrid.h"
 
 #include <drjit/jit.h>
 #include <drjit/tensor.h>
@@ -16,10 +17,8 @@ PYBIND11_MODULE(_hashgrid_core, m) {
   using Point3f = dr::Array<Float, 3>;
   py::module drjit = py::module::import("drjit");
 
-  m.def("test", []() { return std::string("test"); });
-  py::class_<HashGrid<Float>>(m, "HashGrid")
-      // .def(py::init<Point3f &, int, int>());
-      .def("cell_pos", &HashGrid<Float>::cell_pos);
-  // .def_readonly("cell_size", &HashGrid<Float>::cell_size);
-  // .def("cell_idx", &HashGrid<Float>::cell_idx);
+  m.def("test", [](dr::CUDAArray<float> &test) { return std::string("test"); });
+  m.def("float", []() { return dr::CUDAArray<float>(0.); });
+  m.def("scatter_atomic",
+        &scatter_atomic_add_uint<dr::CUDAArray<unsigned int>>);
 }

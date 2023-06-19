@@ -2,6 +2,8 @@
 #include "../kernels/vec.h"
 #include "cuda_helpers.h"
 #include <cstdint>
+#include <drjit-core/containers.h>
+#include <drjit/array.h>
 #include <drjit/util.h>
 
 namespace dr = drjit;
@@ -15,34 +17,27 @@ std::pair<Vec3i, Vec3i> get_launch_parameters(int n_threads) {
   return {grid_size, block_size};
 }
 
-template <typename Float>
-HashGrid<Float>::HashGrid(Point3f &sample, int resolution, int n_cells) {
-  n_samples = sample.shape()[1];
-  this->n_cells = n_cells;
-  this->resolution = resolution;
-  this->bbmin = dr::minimum(dr::min(sample.x),
-                            dr::minimum(dr::min(sample.y), dr::min(sample.z)));
-  this->bbmax = dr::maximum(dr::max(sample.x),
-                            dr::maximum(dr::max(sample.y), dr::max(sample.z)));
+template <typename UInt32>
+UInt32 scatter_atomic_add_uint(UInt32 &target, const UInt32 &value,
+                               const UInt32 &idx) {
 
-  UInt32 cell = cell_idx(sample);
-  dr::eval(cell);
+  int n_values = idx.size();
+  int n_target = target.size();
+  UInt32 dst = dr::zeros<UInt32>(n_values);
 
-  // this->cell_offset = dr::zeros<UInt32>(n_cells);
-  this->sample_index = dr::zeros<UInt32>(n_samples);
-  auto index_in_cell = dr::zeros<UInt32>(n_samples);
-  this->cell_size = dr::zeros<UInt32>(n_cells);
+  dr::eval(target, value, idx, dst);
 
   assert(dr::is_cuda_v<Float>());
   cuda_load_kernels();
 
-  auto [grid_size, block_size] = get_launch_parameters(n_samples);
+  auto [grid_size, block_size] = get_launch_parameters(n_values);
 
-  uint32_t *cell_ptr = cell.data();
-  uint32_t *cell_size_ptr = cell_size.data();
-  uint32_t *index_in_cell_ptr = index_in_cell.data();
+  const uint32_t *value_ptr = value.data();
+  const uint32_t *idx_ptr = idx.data();
+  uint32_t *target_ptr = target.data();
+  uint32_t *dst_ptr = dst.data();
 
-  void *args[] = {&cell_ptr, &cell_size_ptr, &index_in_cell_ptr, &n_samples};
+  void *args[] = {&target_ptr, &value_ptr, &idx_ptr, &dst_ptr, &n_values};
 
   CUcontext ctx = CUcontext(jit_cuda_context());
   scoped_set_context guard(ctx);
@@ -53,23 +48,7 @@ HashGrid<Float>::HashGrid(Point3f &sample, int resolution, int n_cells) {
   cuda_check(cuCtxSynchronize());
 }
 
-template <typename Float>
-typename HashGrid<Float>::UInt HashGrid<Float>::hash(Point3u &p) {
-  return ((p.x * 73856093) ^ (p.y * 19349663) ^ (p.z * 83492791)) %
-         this->n_cells;
-}
-
-template <typename Float>
-typename HashGrid<Float>::UInt32 HashGrid<Float>::cell_idx(Point3f &p) {
-  return hash(cell_pos(p));
-}
-
-template <typename Float>
-typename HashGrid<Float>::Point3u HashGrid<Float>::cell_pos(Point3f &p) {
-
-  auto p_normalized =
-      (p - this->bbmin) / (this->bbmax - this->bbmin) * this->resolution;
-  auto p_normalized_uint = Point3u(
-      UInt32(p_normalized.x), UInt32(p_normalized.y), UInt32(p_normalized.z));
-  return p_normalized_uint;
-}
+template dr::CUDAArray<uint32_t>
+scatter_atomic_add_uint(dr::CUDAArray<uint32_t> &,
+                        const dr::CUDAArray<uint32_t> &,
+                        const dr::CUDAArray<uint32_t> &);
