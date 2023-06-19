@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools", "wheel", "scikit-build", "cmake", "ninja", "pybind11", "drjit>=0.2.0", "mitsuba"]
+requires = ["setuptools", "wheel", "scikit-build", "cmake", "ninja", "pybind11", "drjit>=0.2.0"]
 
 build-backend = "setuptools.build_meta"
 
@@ -11,7 +11,7 @@ norecursedirs = [ "ext" ]
 
 [tool.cibuildwheel]
 test-command = "python -c \"import hashgrid\""
-test-requires =  "pytest numpy drjit"
+test-requires =  "pytest numpy drjit mitsuba"
 skip = "*-musllinux* pp* cp36-* cp37-* cp311-* *-win32 *_i686 cp38-macosx_arm64"
 
 [tool.cibuildwheel.linux]
