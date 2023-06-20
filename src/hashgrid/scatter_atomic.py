@@ -19,7 +19,6 @@ def scatter_atomic_inc(target: dr.cuda.UInt, idx: dr.cuda.UInt):
     dr.scatter(dst, 0, dr.arange(UInt, n_values))
 
     if idx.data_() == target.data_():
-        print("Warning")
         idx_ = dr.empty(UInt, n_values)
         dr.scatter(
             idx_,

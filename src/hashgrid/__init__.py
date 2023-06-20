@@ -24,60 +24,61 @@ class HashGrid:
     def __init__(
         self, sample: mi.Point3f, resolution: int, n_cells: None | int = None
     ) -> None:
-        """Construct a Hash Grid Similar to the implementation described in
+        with dr.suspend_grad():
+            """Construct a Hash Grid Similar to the implementation described in
 
-        Guillaume Boissé. 2021. WORLD-SPACE SPATIOTEMPORAL RESERVOIR
-        REUSE FOR RAY-TRACED GLOBAL ILLUMINATION. In SIGGRAPH Asia
-        2021 Technical Communications (SA ’21 Technical Communications), De-
-        cember 14–17, 2021, Tokyo, Japan. ACM, New York, NY, USA, 4 pages.
-        https://doi.org/10.1145/3478512.3488613
+            Guillaume Boissé. 2021. WORLD-SPACE SPATIOTEMPORAL RESERVOIR
+            REUSE FOR RAY-TRACED GLOBAL ILLUMINATION. In SIGGRAPH Asia
+            2021 Technical Communications (SA ’21 Technical Communications), De-
+            cember 14–17, 2021, Tokyo, Japan. ACM, New York, NY, USA, 4 pages.
+            https://doi.org/10.1145/3478512.3488613
 
-        Args:
-            sample: Samples that should be inserted into the hash-grid
-            resolution: Number of cells in each direction
-            n_cells: Number of cells in the Hash Grid
-        """
-        n_samples = dr.shape(sample)[-1]
-        if n_cells is None:
-            n_cells = n_samples
-        self.n_cells = n_cells
-        self.n_samples = n_samples
-        self.resolution = resolution
-        self.bbmin = dr.minimum(
-            dr.min(sample.x), dr.minimum(dr.min(sample.y), dr.min(sample.z))
-        )
-        self.bbmax = dr.maximum(
-            dr.max(sample.x), dr.maximum(dr.max(sample.y), dr.max(sample.z))
-        )
+            Args:
+                sample: Samples that should be inserted into the hash-grid
+                resolution: Number of cells in each direction
+                n_cells: Number of cells in the Hash Grid
+            """
+            n_samples = dr.shape(sample)[-1]
+            if n_cells is None:
+                n_cells = n_samples
+            self.n_cells = n_cells
+            self.n_samples = n_samples
+            self.resolution = resolution
+            self.bbmin = dr.minimum(
+                dr.min(sample.x), dr.minimum(dr.min(sample.y), dr.min(sample.z))
+            )
+            self.bbmax = dr.maximum(
+                dr.max(sample.x), dr.maximum(dr.max(sample.y), dr.max(sample.z))
+            )
 
-        from .prefix_sum import prefix_sum
+            from .prefix_sum import prefix_sum
 
-        cell = self.cell_idx(sample)
+            cell = self.cell_idx(sample)
 
-        cell_size = dr.zeros(mi.UInt, n_cells)
+            cell_size = dr.zeros(mi.UInt, n_cells)
 
-        index_in_cell = scatter_atomic_inc(cell_size, cell)
+            index_in_cell = scatter_atomic_inc(cell_size, cell)
 
-        first_cell = dr.eq(dr.arange(mi.UInt, n_cells), 0)
-        cell_offset = prefix_sum(cell_size)
-        cell_offset = dr.select(
-            first_cell,
-            0,
-            dr.gather(
-                mi.UInt,
-                cell_offset,
-                dr.arange(mi.UInt, n_cells) - 1,
-                ~first_cell,
-            ),
-        )
-        self.cell_offset = cell_offset
-        self.cell_size = cell_size
-        self.sample_idx = dr.zeros(mi.UInt, n_samples)
-        dr.scatter(
-            self.sample_idx,
-            dr.arange(mi.UInt, n_samples),
-            dr.gather(mi.UInt, cell_offset, cell) + index_in_cell,
-        )
+            first_cell = dr.eq(dr.arange(mi.UInt, n_cells), 0)
+            cell_offset = prefix_sum(cell_size)
+            cell_offset = dr.select(
+                first_cell,
+                0,
+                dr.gather(
+                    mi.UInt,
+                    cell_offset,
+                    dr.arange(mi.UInt, n_cells) - 1,
+                    ~first_cell,
+                ),
+            )
+            self.cell_offset = cell_offset
+            self.cell_size = cell_size
+            self.sample_idx = dr.zeros(mi.UInt, n_samples)
+            dr.scatter(
+                self.sample_idx,
+                dr.arange(mi.UInt, n_samples),
+                dr.gather(mi.UInt, cell_offset, cell) + index_in_cell,
+            )
 
     def cell_idx(self, p: mi.Point3f):
         return hash(
