@@ -15,6 +15,7 @@ import hashgrid
 
 if __name__ == "__main__":
     mi.set_variant("cuda_ad_rgb")
+
     n = 1_000_000
 
     target = dr.zeros(mi.UInt, n)
@@ -26,15 +27,16 @@ if __name__ == "__main__":
     print(f"{dr.sum(target)=}")
 
     # n = 1_000_000
-    # sampler = mi.load_dict({"type": "independent"})  # type: mi.Sampler
-    # sampler.seed(0, n)
-    # sample = mi.Point3f(sampler.next_1d(), sampler.next_1d(), sampler.next_1d())
+    # for i in range(100):
+    #     sampler = mi.load_dict({"type": "independent"})  # type: mi.Sampler
+    #     sampler.seed(0, n)
+    #     sample = mi.Point3f(sampler.next_1d(), sampler.next_1d(), sampler.next_1d())
     #
-    # grid = HashGrid(sample, 3, 1_000_000)
-    # print(f"{grid.cell_size=}")
-    # print(f"{dr.sum(grid.cell_size)=}")
-    # print(f"{grid.cell_offset=}")
-    #
+    #     grid = HashGrid(sample, 3, 30)
+    #     print(f"{grid.cell_size=}")
+    #     print(f"{dr.sum(grid.cell_size)=}")
+    #     print(f"{grid.cell_offset=}")
+
     # p = mi.Point3f(0.5, 0.5, 0.1)
     # cell = grid.cell_idx(p)
     # cell_size = dr.gather(mi.UInt, grid.cell_size, cell)
