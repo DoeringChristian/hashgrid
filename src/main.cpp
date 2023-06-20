@@ -15,7 +15,7 @@ PYBIND11_MODULE(_hashgrid_core, m) {
 
   // using Float = dr::CUDAArray<float>;
   // using Point3f = dr::Array<Float, 3>;
-  // py::module drjit = py::module::import("drjit");
+  py::module drjit = py::module::import("drjit");
 
   m.def("scatter_atomic_inc_uint_cuda", &scatter_atomic_inc_uint_cuda);
 }
