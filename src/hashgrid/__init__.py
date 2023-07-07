@@ -57,7 +57,8 @@ class HashGrid:
 
             cell_size = dr.zeros(mi.UInt, n_cells)
 
-            index_in_cell = scatter_atomic_inc(cell_size, cell)
+            with dr.suspend_grad():
+                index_in_cell = scatter_atomic_inc(cell_size, cell)
 
             first_cell = dr.eq(dr.arange(mi.UInt, n_cells), 0)
             cell_offset = prefix_sum(cell_size)

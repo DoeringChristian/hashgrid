@@ -21,9 +21,6 @@ std::pair<Vec3i, Vec3i> get_launch_parameters(int n_threads) {
 void scatter_atomic_inc_uint_cuda(uint64_t target, uint64_t idx, uint64_t dst,
                                   int n_values) {
 
-  dr::eval(target, idx, dst);
-
-  assert(dr::is_cuda_v<Float>());
   cuda_load_kernels();
 
   auto [grid_size, block_size] = get_launch_parameters(n_values);
